@@ -2,15 +2,12 @@ package com.vonquednow;
 
 import java.io.*;
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.stream.Collectors;
@@ -24,7 +21,6 @@ public class MainWindow {
     private JLabel labelVer;
     private JButton buttonClose;
     private String project, version, command, timestamp, user, strOutput, strError;
-    private String[] outputmsg;
 
     private MainWindow() {
         //Set Texts
@@ -32,6 +28,18 @@ public class MainWindow {
         buttonClose.setText("Close");
         labelID.setText("Project ID:");
         labelVer.setText("Version No.:");
+
+        //Create MsgBox components
+        JOptionPane popupMsg = new JOptionPane();
+        JScrollPane scrollpane = new JScrollPane();
+        scrollpane.setSize(500,500);
+        JTextArea txtAreaError = new JTextArea();
+        JTextArea txtAreaOutput = new JTextArea();
+        //Set Dimensions
+        txtAreaOutput.setSize(200, 200);
+        txtAreaOutput.setSize(500, 500);
+        txtAreaError.setSize(500, 500);
+        popupMsg.setSize(500,500);
 
         buttonDeploy.addActionListener(e -> {
             //Save CSV file with these columns: timestamp, projectid, version, username
@@ -44,7 +52,6 @@ public class MainWindow {
                 Files.write(path, Collections.singletonList(timestamp + "," + project + "," + version + "," + user), StandardCharsets.UTF_8,
                         Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
             } catch (final IOException ioe) {
-                // Add your own exception handling...
                 ioe.printStackTrace();
             }
             //Push app to test enviroment
@@ -63,15 +70,19 @@ public class MainWindow {
                 strOutput =  output.lines().collect(Collectors.joining("\n"));
                 strError =  error.lines().collect(Collectors.joining("\n"));
 
-
-                if (strOutput != null) {
+                //Display message depending on exit status
+                if (strOutput.length() > 1) {
+                    txtAreaOutput.setText(strOutput);
+                    scrollpane.getViewport().add(txtAreaOutput);
                     JOptionPane.showMessageDialog(null,
-                            user + ": " + project + " version " + version + "\n" + strOutput,
+                            scrollpane,
                             "Information",
                             JOptionPane.WARNING_MESSAGE);
                 } else {
+                    txtAreaError.setText(strError);
+                    scrollpane.getViewport().add(txtAreaError);
                     JOptionPane.showMessageDialog(null,
-                            user + ": " + project + " version " + version + "\n" + strError,
+                            scrollpane,
                             "Error",
                             JOptionPane.ERROR_MESSAGE);
                 }
