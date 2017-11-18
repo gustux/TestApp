@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 
-public class AppendCSV {
+public class LogFile {
     //set fields
     private Path path;
     private String version, project, status;
@@ -18,11 +18,11 @@ public class AppendCSV {
     private String timestamp;
 
     //constructors
-    public AppendCSV() {
+    public LogFile() {
 
     }
 
-    AppendCSV(String Strpath, String project, String version, String status){
+    LogFile(String Strpath, String project, String version, String status){
         this.path = Paths.get(Strpath);
         this.project = project;
         this.version = version;

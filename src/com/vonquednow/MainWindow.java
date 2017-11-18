@@ -1,8 +1,15 @@
 package com.vonquednow;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class MainWindow {
@@ -13,12 +20,17 @@ public class MainWindow {
     private JLabel labelID;
     private JLabel labelVer;
     private JButton buttonClose;
-    private String project, version, status = null, strOutput, strError;
+    private JButton buttonLog;
+    private JButton buttonClear;
+    private String project, version, status = null, strOutput, strError, logmsg;
+    private String strlog = "log3.csv";
 
     private MainWindow() {
         //Set Texts
         buttonDeploy.setText("Deploy");
+        buttonLog.setText("View Log");
         buttonClose.setText("Close");
+        buttonClear.setText("Clear");
         labelID.setText("Project ID:");
         labelVer.setText("Version No.:");
 
@@ -27,55 +39,89 @@ public class MainWindow {
         JScrollPane scrollpane = new JScrollPane();
         scrollpane.setSize(500, 500);
         JTextArea txtAreaError = new JTextArea();
+        JTextArea txtAreaLog = new JTextArea();
         JTextArea txtAreaOutput = new JTextArea();
+
         //Set Dimensions
-        txtAreaOutput.setSize(200, 200);
         txtAreaOutput.setSize(500, 500);
         txtAreaError.setSize(500, 500);
-        popupMsg.setSize(500, 500);
+        txtAreaLog.setSize(500,500);
+        buttonClear.setSize(50,10);
+        //Set Wrap
+        txtAreaLog.setLineWrap(true);
+        txtAreaOutput.setLineWrap(true);
+        txtAreaError.setLineWrap(true);
 
         buttonDeploy.addActionListener(e -> {
             //get texts from boxes
             project = txtProjectID.getText();
             version = txtVersion.getText();
-            //try to push app to test enviroment
-            RunCommand deploy = new RunCommand(project, version);
-            deploy.run();
-            //create log writer
-            AppendCSV write2file = new AppendCSV("log3.csv", project, version, status);
-            //Set console text readers
-            BufferedReader output = new BufferedReader(new
-                    InputStreamReader(deploy.process.getInputStream()));
-            BufferedReader error = new BufferedReader(new
-                    InputStreamReader(deploy.process.getErrorStream()));
-
-            //Get console output
-            strOutput = output.lines().collect(Collectors.joining("\n"));
-            strError = error.lines().collect(Collectors.joining("\n"));
-
-            //Display message depending on exit status
-            if (strOutput.length() > 1) {
-                write2file.setStatus("SUCCESS");
-                write2file.write();
-                txtAreaOutput.setText(strOutput);
-                scrollpane.getViewport().add(txtAreaOutput);
+            if (project.length() < 1 || version.length() < 1 || version.matches("[A-Za-z]")){
                 JOptionPane.showMessageDialog(null,
-                        scrollpane,
+                        "Please enter a valid Project ID and Version No.",
                         "Information",
                         JOptionPane.WARNING_MESSAGE);
             } else {
-                write2file.setStatus("FAIL");
-                write2file.write();
-                txtAreaError.setText(strError);
-                scrollpane.getViewport().add(txtAreaError);
-                JOptionPane.showMessageDialog(null,
-                        scrollpane,
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
+                //try to push app to test enviroment
+                RunCommand deploy = new RunCommand(project, version);
+                deploy.run();
+                //create log writer
+                LogFile write2file = new LogFile(strlog, project, version, status);
+                //Set console text readers
+                BufferedReader output = new BufferedReader(new
+                        InputStreamReader(deploy.process.getInputStream()));
+                BufferedReader error = new BufferedReader(new
+                        InputStreamReader(deploy.process.getErrorStream()));
+
+                //Get console output
+                strOutput = output.lines().collect(Collectors.joining("\n"));
+                strError = error.lines().collect(Collectors.joining("\n"));
+
+                //Display message depending on exit status
+                if (strOutput.length() > 40) {
+                    write2file.setStatus("SUCCESS");
+                    write2file.write();
+                    txtAreaOutput.setText(strOutput);
+                    scrollpane.getViewport().add(txtAreaOutput);
+                    JOptionPane.showMessageDialog(null,
+                            scrollpane,
+                            "Information",
+                            JOptionPane.WARNING_MESSAGE);
+                } else {
+                    write2file.setStatus("FAIL");
+                    write2file.write();
+                    txtAreaError.setText(strError);
+                    scrollpane.getViewport().add(txtAreaError);
+                    JOptionPane.showMessageDialog(null,
+                            scrollpane,
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
             }
 
-        });
+        }
+        );
         buttonClose.addActionListener(e -> System.exit(0));
+
+        buttonClear.addActionListener(e -> {
+            txtProjectID.setText("");
+            txtVersion.setText("");
+        });
+
+        buttonLog.addActionListener(e -> {
+            try {
+                logmsg = Files.readAllLines (Paths.get(strlog)).toString();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            List<String> items = Arrays.asList(logmsg.split("\\s*,\\s*"));
+            txtAreaLog.setText(items.toString());
+            scrollpane.getViewport().add(txtAreaLog);
+            JOptionPane.showMessageDialog(null,
+                    scrollpane,
+                    "Log",
+                    JOptionPane.INFORMATION_MESSAGE);
+        });
     }
 
 
