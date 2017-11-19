@@ -2,7 +2,6 @@ package com.vonquednow;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,7 +22,8 @@ public class MainWindow {
     private JButton buttonLog;
     private JButton buttonClear;
     private String project, version, status = null, strOutput, strError, logmsg;
-    private String strlog = "log3.csv";
+    private String STRPATH = "log3.csv";
+    private LogFile logger;
 
     private MainWindow() {
         //Set Texts
@@ -66,7 +66,7 @@ public class MainWindow {
                 RunCommand deploy = new RunCommand(project, version);
                 deploy.run();
                 //create log writer
-                LogFile write2file = new LogFile(strlog, project, version, status);
+                logger = new LogFile(STRPATH, project, version, status);
                 //Set console text readers
                 BufferedReader output = new BufferedReader(new
                         InputStreamReader(deploy.process.getInputStream()));
@@ -79,8 +79,8 @@ public class MainWindow {
 
                 //Display message depending on exit status
                 if (strOutput.length() > 40) {
-                    write2file.setStatus("SUCCESS");
-                    write2file.write();
+                    logger.setStatus("SUCCESS");
+                    logger.write();
                     txtAreaOutput.setText(strOutput);
                     scrollpane.getViewport().add(txtAreaOutput);
                     JOptionPane.showMessageDialog(null,
@@ -88,8 +88,8 @@ public class MainWindow {
                             "Information",
                             JOptionPane.WARNING_MESSAGE);
                 } else {
-                    write2file.setStatus("FAIL");
-                    write2file.write();
+                    logger.setStatus("FAIL");
+                    logger.write();
                     txtAreaError.setText(strError);
                     scrollpane.getViewport().add(txtAreaError);
                     JOptionPane.showMessageDialog(null,
@@ -101,16 +101,20 @@ public class MainWindow {
 
         }
         );
+
+        //Close button
         buttonClose.addActionListener(e -> System.exit(0));
 
+        //Clear button
         buttonClear.addActionListener(e -> {
             txtProjectID.setText("");
             txtVersion.setText("");
         });
 
-        buttonLog.addActionListener(e -> {
+        //Log button
+        buttonLog.addActionListener((ActionEvent e) -> {
             try {
-                logmsg = Files.readAllLines (Paths.get(strlog)).toString();
+                logmsg = Files.readAllLines (Paths.get(STRPATH)).toString();
             } catch (IOException e1) {
                 e1.printStackTrace();
             }

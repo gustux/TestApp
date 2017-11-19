@@ -13,7 +13,7 @@ import java.util.Date;
 public class LogFile {
     //set fields
     private Path path;
-    private String version, project, status;
+    private String version, project, status, logmsg;
     private String user;
     private String timestamp;
 
@@ -32,7 +32,7 @@ public class LogFile {
     }
 
     //methods
-    public void setPath(String newpath) {
+    void setPath(String newpath) {
         this.path = Paths.get(newpath);
     }
 
@@ -52,10 +52,19 @@ public class LogFile {
         try{
             this.user = System.getProperty("user.name");
             this.timestamp = new SimpleDateFormat("dd/MM/yyyy HH.mm.ss").format(new Date());
-            Files.write(path, Collections.singletonList(timestamp + "," + project + "," + version + "," + user + "," + status), StandardCharsets.UTF_8,
-                    Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
+            Files.write(path, Collections.singletonList(timestamp + "," + project + "," + version + "," + user + "," + status),
+                    StandardCharsets.UTF_8, Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
         } catch (final IOException ioe){
             ioe.printStackTrace();
         }
+    }
+
+    String read(){
+        try {
+            logmsg = Files.readAllLines (Paths.get(String.valueOf(path))).toString();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        return logmsg;
     }
 }
