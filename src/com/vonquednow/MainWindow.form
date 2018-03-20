@@ -23,7 +23,9 @@
             <preferred-size width="243" height="24"/>
           </grid>
         </constraints>
-        <properties/>
+        <properties>
+          <editable value="true"/>
+        </properties>
       </component>
       <component id="311d6" class="javax.swing.JButton" binding="buttonClear">
         <constraints>
@@ -40,6 +42,8 @@
           </grid>
         </constraints>
         <properties>
+          <focusCycleRoot value="false"/>
+          <nextFocusableComponent value=""/>
           <text value=""/>
         </properties>
       </component>
